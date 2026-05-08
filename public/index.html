@@ -864,8 +864,29 @@ function renderResults(data, kwList) {
   el.style.display = 'block';
   document.getElementById('zoomCta').style.display = 'flex';
   document.getElementById('regenBtn').addEventListener('click', generate);
-  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    sendHeight();
+  }, 100);
 }
+
+// ── AUTO-RESIZE: sends page height to parent WordPress page ──
+function sendHeight() {
+  const height = document.body.scrollHeight;
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage(
+      { type: 'rc-height', height: height },
+      '*'
+    );
+  }
+}
+
+// Send height on load and whenever content changes
+window.addEventListener('load', sendHeight);
+window.addEventListener('resize', sendHeight);
+
+const observer = new MutationObserver(sendHeight);
+observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 </script>
 </body>
 </html>
