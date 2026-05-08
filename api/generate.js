@@ -84,7 +84,7 @@ Return ONLY valid JSON, no preamble, no markdown:
             parts: [{ text: 'You are an expert academic research advisor. Respond with valid JSON only — no markdown, no preamble.' }]
           },
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 1.0, maxOutputTokens: 2048 }
+          generationConfig: { temperature: 1.0, maxOutputTokens: 8192 }
         }),
       }
     );
