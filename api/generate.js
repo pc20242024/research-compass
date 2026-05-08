@@ -1,8 +1,4 @@
-// api/generate.js
-// Vercel runs this automatically when the page calls /api/generate.
-// Your Gemini API key lives here on the server — never in the browser.
-
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 
 const ALLOWED_SECTORS = new Set([
   'AI & New Technologies',
@@ -20,7 +16,6 @@ const ALLOWED_SECTORS = new Set([
   'Arts, Culture & Creative Industries',
 ]);
 
-// Rate limit: max 5 requests per IP per hour
 const ipLog = new Map();
 
 function isRateLimited(ip) {
@@ -39,18 +34,13 @@ function isRateLimited(ip) {
 }
 
 module.exports = async function handler(req, res) {
-  // Allow CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Rate limiting
   const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
   if (isRateLimited(ip)) {
     return res.status(429).json({ error: 'Too many requests. Please try again in an hour.' });
@@ -58,12 +48,10 @@ module.exports = async function handler(req, res) {
 
   const { sector, keywords = [], isRegen = false } = req.body || {};
 
-  // Validate sector
   if (!sector || !ALLOWED_SECTORS.has(sector)) {
     return res.status(400).json({ error: 'Invalid sector.' });
   }
 
-  // Sanitise keywords
   const cleanKeywords = Array.isArray(keywords)
     ? keywords.filter(k => typeof k === 'string').map(k => k.trim().slice(0, 60)).filter(Boolean).slice(0, 10)
     : [];
