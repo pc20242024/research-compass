@@ -69,7 +69,7 @@ module.exports = async function handler(req, res) {
     : [];
 
   const kwSection = cleanKeywords.length > 0
-    ? `\n\nMANDATORY: The candidate has provided these specific keywords that MUST directly shape the thesis topics: ${cleanKeywords.map(k => `"${k}"`).join(', ')}. Every thesis idea must visibly and specifically incorporate at least one of these keywords — not just mention them in passing but make them central to the research question. Do not generate generic thesis ideas and then add the keywords as an afterthought.`
+    ? `\n\nCRITICAL INSTRUCTION — KEYWORDS: The candidate has typed the following into a keyword field: ${cleanKeywords.map(k => `"${k}"`).join(', ')}. You MUST treat this as the central theme of the research. Generate thesis ideas that are DIRECTLY about this specific topic or context. The keyword should appear in or directly shape the title of at least 3 of the 5 thesis ideas. Do not generate generic sector thesis ideas — the keyword completely overrides the generic approach. If the keyword mentions a specific company, person, technology or trend, make that the focus of the research questions.`
     : '';
 
   const varietyNote = isRegen
