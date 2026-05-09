@@ -789,6 +789,14 @@ function renderActiveKeywords() {
 async function generate() {
   if (!selected) return;
 
+  // Auto-add any text still in the keyword input field
+  const kwInput = document.getElementById('kwInput');
+  if (kwInput && kwInput.value.trim()) {
+    activeKeywords.add(kwInput.value.trim());
+    renderActiveKeywords();
+    kwInput.value = '';
+  }
+
   const resultsEl = document.getElementById('results');
   const loadingEl = document.getElementById('loading');
   const errorEl   = document.getElementById('errorBox');
