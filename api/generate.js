@@ -18,6 +18,8 @@ const ALLOWED_SECTORS = new Set([
   'Media & Communication',
   'Hospitality, Tourism & Leisure',
   'Arts, Culture & Creative Industries',
+  'Nonprofit, NGO & Social Services',
+  'Government & Public Administration',
 ]);
 
 // Rate limit: max 5 requests per IP per hour
