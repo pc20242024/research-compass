@@ -69,32 +69,38 @@ module.exports = async function handler(req, res) {
     : [];
 
   const kwSection = cleanKeywords.length > 0
-    ? `\n\nCRITICAL INSTRUCTION — KEYWORDS: The candidate has typed the following into a keyword field: ${cleanKeywords.map(k => `"${k}"`).join(', ')}. You MUST treat this as the central theme of the research. Generate thesis ideas that are DIRECTLY about this specific topic or context. The keyword should appear in or directly shape the title of at least 3 of the 5 thesis ideas. Do not generate generic sector thesis ideas — the keyword completely overrides the generic approach. If the keyword mentions a specific company, person, technology or trend, make that the focus of the research questions.`
+    ? `\n\nThe candidate has provided the following research interest or context: "${cleanKeywords.join(' ')}". Generate ALL 5 thesis ideas specifically around this topic. This is not optional — every single thesis must directly address this specific research interest. Treat it as the brief you have been given.`
     : '';
+
+  const kwInTitle = cleanKeywords.length > 0
+    ? `The candidate's specific research interest is: "${cleanKeywords.join(' ')}". Every thesis title must directly reference or be about this topic.`
+    : 'Generate 5 diverse thesis ideas relevant to senior executives in this sector.';
 
   const varietyNote = isRegen
     ? '\n\nIMPORTANT: This is a regeneration. Produce 5 completely different thesis ideas — use different leadership theories, different sub-sector angles, different methodologies.'
     : '\n\nAvoid generic topics. Prioritise niche, emerging, counterintuitive angles that would surprise a seasoned academic supervisor.';
 
-  const prompt = `You are a PhD admissions advisor at Chancellor Institute, which delivers executive doctoral programmes in leadership for senior professionals — not full-time academics. Your candidates are typically mid-to-senior executives, managers and industry leaders with 5–20 years of real-world experience who want to do a PhD alongside their careers to deepen their professional credibility and solve real problems they face at work.
+  const prompt = `You are a PhD admissions advisor at Chancellor Institute, which delivers executive doctoral programmes in leadership for senior professionals — not full-time academics. Your candidates are typically mid-to-senior executives with 5–20 years of real-world experience.
 
-A prospective PhD candidate works in the "${sector}" sector.${kwSection}
+A prospective PhD candidate works in the "${sector}" sector.
 
-Generate exactly 5 PhD thesis ideas that would genuinely excite and be relevant to a senior executive or experienced manager in this sector — NOT a full-time academic. The ideas must:
+YOUR PRIMARY TASK: ${kwInTitle}${kwSection}
 
-1. Be grounded in real, practical leadership challenges that executives in this sector actually face day-to-day
-2. Use plain, professional English in the title — NOT jargon-heavy academic language. Avoid terms like "epistemological", "ontological", "hegemonic", "feminist critique", "dualities", "discursive", "neoliberal" or similar academic buzzwords
-3. Be the kind of question a thoughtful senior leader would genuinely want answered — something that would make them say "yes, that is exactly the problem I face at work"
-4. Be grounded in leadership — how leaders make decisions, build culture, manage change, develop people, or shape organisations in this specific sector
-5. Suggest a methodology that is practical and could realistically be completed part-time over 3–5 years (e.g. interviews with industry leaders, case studies, surveys of practitioners)
+Generate exactly 5 PhD thesis ideas. The ideas must:
+1. Be grounded in real, practical leadership challenges that executives actually face
+2. Use plain, professional English — NO academic jargon such as "epistemological", "ontological", "hegemonic", "discursive" or similar
+3. Be the kind of question a senior leader would genuinely want answered
+4. Be researchable part-time over 3–5 years using practitioner methods (interviews, case studies, surveys)
 
-AVOID: feminist theory, critical theory, postcolonial theory, purely philosophical arguments, abstract theoretical debates, or anything that sounds like it belongs in a humanities faculty rather than a business school.
+AVOID: feminist theory, critical theory, postcolonial theory, abstract philosophical debates.
 
-GOOD EXAMPLE TITLE: "How do hospital CEOs rebuild staff trust after a major patient safety incident — and what leadership behaviours matter most?"
-BAD EXAMPLE TITLE: "Challenging the Dualities: A Feminist Critique of Ambidextrous Leadership for Equitable Digital Transformation"${varietyNote}
+GOOD TITLE EXAMPLE: "How do hospital CEOs rebuild staff trust after a major patient safety incident?"
+BAD TITLE EXAMPLE: "Challenging the Dualities: A Feminist Critique of Ambidextrous Leadership"
+
+${varietyNote}
 
 Return ONLY valid JSON, no preamble, no markdown:
-{"sector":"${sector}","theses":[{"title":"Full working thesis title in plain professional English","description":"2-3 sentences explaining the real-world problem this addresses, why it matters to practitioners, and how the research would be conducted.","methodology":"e.g. In-depth interviews with senior executives, case studies, practitioner surveys","keywords":["kw1","kw2","kw3","kw4"]}]}`;
+{"sector":"${sector}","theses":[{"title":"Thesis title directly addressing the research interest","description":"2-3 sentences on the real-world problem, why it matters to practitioners, and how it would be researched.","methodology":"e.g. Interviews with senior executives, case studies","keywords":["kw1","kw2","kw3","kw4"]}]}`;
 
   try {
     const response = await fetch(
