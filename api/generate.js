@@ -2,7 +2,7 @@
 // Vercel runs this automatically when the page calls /api/generate.
 // Your Gemini API key lives here on the server — never in the browser.
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const ALLOWED_SECTORS = new Set([
   'AI & New Technologies',
