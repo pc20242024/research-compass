@@ -1,4 +1,8 @@
-const GEMINI_MODEL = 'gemini-2.5-flash';
+// api/generate.js
+// Vercel runs this automatically when the page calls /api/generate.
+// Your Gemini API key lives here on the server — never in the browser.
+
+const GEMINI_MODEL = 'gemini-2.0-flash';
 
 const ALLOWED_SECTORS = new Set([
   'AI & New Technologies',
@@ -16,6 +20,7 @@ const ALLOWED_SECTORS = new Set([
   'Arts, Culture & Creative Industries',
 ]);
 
+// Rate limit: max 5 requests per IP per hour
 const ipLog = new Map();
 
 function isRateLimited(ip) {
@@ -34,13 +39,18 @@ function isRateLimited(ip) {
 }
 
 module.exports = async function handler(req, res) {
+  // Allow CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Rate limiting
   const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
   if (isRateLimited(ip)) {
     return res.status(429).json({ error: 'Too many requests. Please try again in an hour.' });
@@ -48,10 +58,12 @@ module.exports = async function handler(req, res) {
 
   const { sector, keywords = [], isRegen = false } = req.body || {};
 
+  // Validate sector
   if (!sector || !ALLOWED_SECTORS.has(sector)) {
     return res.status(400).json({ error: 'Invalid sector.' });
   }
 
+  // Sanitise keywords
   const cleanKeywords = Array.isArray(keywords)
     ? keywords.filter(k => typeof k === 'string').map(k => k.trim().slice(0, 60)).filter(Boolean).slice(0, 10)
     : [];
@@ -64,14 +76,25 @@ module.exports = async function handler(req, res) {
     ? '\n\nIMPORTANT: This is a regeneration. Produce 5 completely different thesis ideas — use different leadership theories, different sub-sector angles, different methodologies.'
     : '\n\nAvoid generic topics. Prioritise niche, emerging, counterintuitive angles that would surprise a seasoned academic supervisor.';
 
-  const prompt = `You are an academic research advisor for Chancellor Institute, delivering doctoral programmes in leadership and organisational studies.
+  const prompt = `You are a PhD admissions advisor at Chancellor Institute, which delivers executive doctoral programmes in leadership for senior professionals — not full-time academics. Your candidates are typically mid-to-senior executives, managers and industry leaders with 5–20 years of real-world experience who want to do a PhD alongside their careers to deepen their professional credibility and solve real problems they face at work.
 
-A prospective PhD candidate has selected the sector: "${sector}".
+A prospective PhD candidate works in the "${sector}" sector.
 
-Generate exactly 5 original PhD thesis ideas at the intersection of LEADERSHIP and the "${sector}" sector. Every thesis must be fundamentally about leadership. Draw on leadership theory (transformational, distributed, adaptive, ethical, servant, ambidextrous, complexity) applied to real sector challenges. Each should address a genuine knowledge gap for a 3-5 year doctoral programme.${kwSection}${varietyNote}
+Generate exactly 5 PhD thesis ideas that would genuinely excite and be relevant to a senior executive or experienced manager in this sector — NOT a full-time academic. The ideas must:
+
+1. Be grounded in real, practical leadership challenges that executives in this sector actually face day-to-day
+2. Use plain, professional English in the title — NOT jargon-heavy academic language. Avoid terms like "epistemological", "ontological", "hegemonic", "feminist critique", "dualities", "discursive", "neoliberal" or similar academic buzzwords
+3. Be the kind of question a thoughtful senior leader would genuinely want answered — something that would make them say "yes, that is exactly the problem I face at work"
+4. Be grounded in leadership — how leaders make decisions, build culture, manage change, develop people, or shape organisations in this specific sector
+5. Suggest a methodology that is practical and could realistically be completed part-time over 3–5 years (e.g. interviews with industry leaders, case studies, surveys of practitioners)
+
+AVOID: feminist theory, critical theory, postcolonial theory, purely philosophical arguments, abstract theoretical debates, or anything that sounds like it belongs in a humanities faculty rather than a business school.
+
+GOOD EXAMPLE TITLE: "How do hospital CEOs rebuild staff trust after a major patient safety incident — and what leadership behaviours matter most?"
+BAD EXAMPLE TITLE: "Challenging the Dualities: A Feminist Critique of Ambidextrous Leadership for Equitable Digital Transformation"${kwSection}${varietyNote}
 
 Return ONLY valid JSON, no preamble, no markdown:
-{"sector":"${sector}","theses":[{"title":"Full working thesis title","description":"2-3 sentences on the research problem, why it matters, and the methodological approach.","methodology":"e.g. Mixed methods","keywords":["kw1","kw2","kw3","kw4"]}]}`;
+{"sector":"${sector}","theses":[{"title":"Full working thesis title in plain professional English","description":"2-3 sentences explaining the real-world problem this addresses, why it matters to practitioners, and how the research would be conducted.","methodology":"e.g. In-depth interviews with senior executives, case studies, practitioner surveys","keywords":["kw1","kw2","kw3","kw4"]}]}`;
 
   try {
     const response = await fetch(
@@ -84,7 +107,7 @@ Return ONLY valid JSON, no preamble, no markdown:
             parts: [{ text: 'You are an expert academic research advisor. Respond with valid JSON only — no markdown, no preamble.' }]
           },
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 1.0, maxOutputTokens: 8192 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
         }),
       }
     );
