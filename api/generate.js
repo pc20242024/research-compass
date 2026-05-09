@@ -69,7 +69,7 @@ module.exports = async function handler(req, res) {
     : [];
 
   const kwSection = cleanKeywords.length > 0
-    ? `\n\nThe student has specified these personal keywords of interest: ${cleanKeywords.map(k => `"${k}"`).join(', ')}. Integrate these meaningfully.`
+    ? `\n\nMANDATORY: The candidate has provided these specific keywords that MUST directly shape the thesis topics: ${cleanKeywords.map(k => `"${k}"`).join(', ')}. Every thesis idea must visibly and specifically incorporate at least one of these keywords — not just mention them in passing but make them central to the research question. Do not generate generic thesis ideas and then add the keywords as an afterthought.`
     : '';
 
   const varietyNote = isRegen
@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
 
   const prompt = `You are a PhD admissions advisor at Chancellor Institute, which delivers executive doctoral programmes in leadership for senior professionals — not full-time academics. Your candidates are typically mid-to-senior executives, managers and industry leaders with 5–20 years of real-world experience who want to do a PhD alongside their careers to deepen their professional credibility and solve real problems they face at work.
 
-A prospective PhD candidate works in the "${sector}" sector.
+A prospective PhD candidate works in the "${sector}" sector.${kwSection}
 
 Generate exactly 5 PhD thesis ideas that would genuinely excite and be relevant to a senior executive or experienced manager in this sector — NOT a full-time academic. The ideas must:
 
@@ -91,7 +91,7 @@ Generate exactly 5 PhD thesis ideas that would genuinely excite and be relevant 
 AVOID: feminist theory, critical theory, postcolonial theory, purely philosophical arguments, abstract theoretical debates, or anything that sounds like it belongs in a humanities faculty rather than a business school.
 
 GOOD EXAMPLE TITLE: "How do hospital CEOs rebuild staff trust after a major patient safety incident — and what leadership behaviours matter most?"
-BAD EXAMPLE TITLE: "Challenging the Dualities: A Feminist Critique of Ambidextrous Leadership for Equitable Digital Transformation"${kwSection}${varietyNote}
+BAD EXAMPLE TITLE: "Challenging the Dualities: A Feminist Critique of Ambidextrous Leadership for Equitable Digital Transformation"${varietyNote}
 
 Return ONLY valid JSON, no preamble, no markdown:
 {"sector":"${sector}","theses":[{"title":"Full working thesis title in plain professional English","description":"2-3 sentences explaining the real-world problem this addresses, why it matters to practitioners, and how the research would be conducted.","methodology":"e.g. In-depth interviews with senior executives, case studies, practitioner surveys","keywords":["kw1","kw2","kw3","kw4"]}]}`;
